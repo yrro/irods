@@ -27,7 +27,7 @@ class IrodsController(object):
     def __init__(self, irods_config=IrodsConfig()):
         self.config = irods_config
 
-    def start(self):
+    def start(self, managed):
         l = logging.getLogger(__name__)
         l.debug('Calling start on IrodsController')
 
@@ -39,7 +39,7 @@ class IrodsController(object):
         except IrodsWarning:
             l.warn('Warning encountered in validation:', exc_info=True)
 
-        if self.get_binary_to_pids_dict():
+        if not managed and self.get_binary_to_pids_dict():
             raise IrodsError('iRODS already running')
 
         self.config.clear_cache()
@@ -83,6 +83,10 @@ class IrodsController(object):
             if self.config.is_catalog:
                 from . import database_interface
                 database_interface.server_launch_hook(self.config)
+
+            if managed:
+                l.info('Checks ok, service manager to start iRODS server.')
+                return
 
             l.info('Starting iRODS server...')
             lib.execute_command(

@@ -1,0 +1,14 @@
+[Unit]
+Description=iRODS server
+Documentation=https://docs.irods.org/
+
+[Service]
+Type=simple
+Restart=always
+User=irods
+ExecStartPre=/var/lib/irods/irodsctl check
+ExecStart=/usr/sbin/irodsServer -u
+ExecStop=/var/lib/irods/irodsctl grid_shutdown
+
+[Install]
+WantedBy=multi-user.target

@@ -67,8 +67,10 @@ def main():
         return 1
 
     operations_dict = {}
-    operations_dict['start'] = lambda: irods_controller.start()
-    operations_dict['graceful_start'] = lambda: irods_controller.start()
+    operations_dict['check'] = lambda: irods_controller.start(managed=True)
+    operations_dict['start'] = lambda: irods_controller.start(managed=False)
+    operations_dict['graceful_start'] = lambda: irods_controller.start(managed=False)
+    operations_dict['grid_shutdown'] = lambda: irods_controller.irods_grid_shutdown()
     operations_dict['stop'] = lambda: irods_controller.stop()
     operations_dict['restart'] = lambda: irods_controller.restart()
     operations_dict['graceful_restart'] = lambda: irods_controller.restart()

@@ -27,11 +27,6 @@ class IrodsController(object):
     def __init__(self, irods_config=IrodsConfig()):
         self.config = irods_config
 
-    def check_config(self):
-        # load the configuration to ensure it exists
-        _ = self.config.server_config
-        _ = self.config.version
-
     def start(self):
         l = logging.getLogger(__name__)
         l.debug('Calling start on IrodsController')

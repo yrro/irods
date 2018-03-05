@@ -1,6 +1,7 @@
 [Unit]
 Description=iRODS server
 Documentation=https://docs.irods.org/
+After=mysql.service postgresql.service mariadb.service
 
 [Service]
 Type=simple

@@ -30,38 +30,52 @@ fi
 IRODS_HOME=/var/lib/irods
 IRODS_CTL=$IRODS_HOME/irodsctl
 
-DETECTEDOS=`$IRODS_HOME/packaging/find_os.sh`
-
-if [ "$DETECTEDOS" = "MacOSX" ] ; then
-    SU_SHELL_OPTS="-l"
+if [ -x /usr/bin/setpriv ]; then
+    _irods_ctl() {
+        setpriv \
+            "--reuid=$IRODS_SERVICE_ACCOUNT_NAME" \
+            "--regid=$IRODS_SERVICE_GROUP_NAME" --init-groups \
+	    --inh-caps=-all \
+            -- "$IRODS_CTL" "$@"
+    }
 else
-    SU_SHELL_OPTS="--shell=/bin/bash --login"
+    DETECTEDOS=`$IRODS_HOME/packaging/find_os.sh`
+
+    _irods_ctl() {
+        if [ "$DETECTEDOS" = "MacOSX" ] ; then
+            SU_SHELL_OPTS="-l"
+        else
+            SU_SHELL_OPTS="--shell=/bin/bash --login"
+        fi
+
+        su $SU_SHELL_OPTS "$IRODS_SERVICE_ACCOUNT_NAME" -c "$IRODS_CTL $*"
+    }
 fi
 
 case $1 in
 status)
-    su $SU_SHELL_OPTS $IRODS_SERVICE_ACCOUNT_NAME -c "$IRODS_CTL status"
+    _irods_ctl status
     ;;
 start)
-    su $SU_SHELL_OPTS $IRODS_SERVICE_ACCOUNT_NAME -c "$IRODS_CTL start"
+    _irods_ctl start
     if [ "$DETECTEDOS" = "RedHatCompatible" -o "$DETECTEDOS" = "SuSE" ] ; then
         touch /var/lock/subsys/irods
     fi
     ;;
 stop)
-    su $SU_SHELL_OPTS $IRODS_SERVICE_ACCOUNT_NAME -c "$IRODS_CTL stop"
+    _irods_ctl stop
     if [ "$DETECTEDOS" = "RedHatCompatible" -o "$DETECTEDOS" = "SuSE" ] ; then
         rm /var/lock/subsys/irods
     fi
     ;;
 restart)
-    su $SU_SHELL_OPTS $IRODS_SERVICE_ACCOUNT_NAME -c "$IRODS_CTL restart"
+    _irods_ctl restart
     if [ "$DETECTEDOS" = "RedHatCompatible" -o "$DETECTEDOS" = "SuSE" ] ; then
         touch /var/lock/subsys/irods
     fi
     ;;
 force-reload)
-    su $SU_SHELL_OPTS $IRODS_SERVICE_ACCOUNT_NAME -c "$IRODS_CTL restart"
+    _irods_ctl restart
     if [ "$DETECTEDOS" = "RedHatCompatible" -o "$DETECTEDOS" = "SuSE" ] ; then
         touch /var/lock/subsys/irods
     fi
